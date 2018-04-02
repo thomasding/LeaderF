@@ -554,7 +554,7 @@ ValueElements* evaluate(TextContext* pText_ctxt,
                         score = prefix_score + pVal->score;
                         end_pos = pVal->end;
                         if ( k == 0 )
-                            score -= 0.2f * (end_pos - i + n - pattern_len);
+                            score -= 0.5f * (end_pos - i + n - pattern_len);
                     }
                 }
             }
