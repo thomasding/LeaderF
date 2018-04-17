@@ -135,14 +135,15 @@ static uint8_t MultiplyDeBruijnBitPosition[64] =
 
 static uint16_t valTable[64] =
 {
-    0,    1,    3,    8,    13,   21,   30,   40,
-    51,   65,   79,   95,   112,  130,  150,  171,
-    194,  217,  242,  268,  296,  325,  355,  386,
-    419,  452,  488,  524,  561,  600,  640,  681,
-    724,  767,  812,  858,  905,  954,  1003, 1054,
-    1106, 1159, 1213, 1269, 1326, 1383, 1442, 1503,
-    1564, 1626, 1690, 1755, 1821, 1888, 1956, 2026,
-    2096, 2168, 2241, 2315, 2390, 2466, 2544, 2622
+    0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 576, 625, 676, 729, 784, 841, 900, 961, 1024, 1089, 1156, 1225, 1296, 1369, 1444, 1521, 1600, 1681, 1764, 1849, 1936, 2025, 2116, 2209, 2304, 2401, 2500, 2601, 2704, 2809, 2916, 3025, 3136, 3249, 3364, 3481, 3600, 3721, 3844, 3969
+    /*0,    1,    3,    8,    13,   21,   30,   40,*/
+    /*51,   65,   79,   95,   112,  130,  150,  171,*/
+    /*194,  217,  242,  268,  296,  325,  355,  386,*/
+    /*419,  452,  488,  524,  561,  600,  640,  681,*/
+    /*724,  767,  812,  858,  905,  954,  1003, 1054,*/
+    /*1106, 1159, 1213, 1269, 1326, 1383, 1442, 1503,*/
+    /*1564, 1626, 1690, 1755, 1821, 1888, 1956, 2026,*/
+    /*2096, 2168, 2241, 2315, 2390, 2466, 2544, 2622*/
 };
 
 typedef struct TextContext
@@ -511,8 +512,10 @@ ValueElements* evaluate(TextContext* pText_ctxt,
          * NOT text = 'xxABCd', pattern = 'abc'; text[i] == 'C'
          * 'Cd' is considered as a word
          */
-        else if ( isupper(text[i-1]) && pattern_mask[(uint8_t)tolower(c)] != -1
-                  && (i+1 == text_len || !islower(text[i+1])) )
+        /*else if ( isupper(text[i-1]) && pattern_mask[(uint8_t)tolower(c)] != -1*/
+        /*          && (i+1 == text_len || !islower(text[i+1])) )*/
+        /*    d = (d << 1) | (pattern_mask[(uint8_t)tolower(c)] >> k);*/
+        else if ( pattern_mask[(uint8_t)tolower(c)] != -1 )
             d = (d << 1) | (pattern_mask[(uint8_t)tolower(c)] >> k);
         else
             d = ~0;
@@ -554,7 +557,7 @@ ValueElements* evaluate(TextContext* pText_ctxt,
                         score = prefix_score + pVal->score;
                         end_pos = pVal->end;
                         if ( k == 0 )
-                            score -= 0.5f * (end_pos - i + n - pattern_len);
+                            score -= 0.4f * (end_pos - i + n - pattern_len);
                     }
                 }
             }
@@ -875,6 +878,7 @@ float getWeight(char* text, uint16_t text_len,
 
         free(text_mask);
 
+        return 10000.0f + score + 1.0f/text_len + 0.1f/(text_len - beg);
         return 10000.0f + score - 0.002f * text_len + 0.001f * beg;
     }
 }
@@ -1197,8 +1201,10 @@ HighlightGroup* evaluateHighlights(TextContext* pText_ctxt,
          * NOT text = 'xxABCd', pattern = 'abc'; text[i] == 'C'
          * 'Cd' is considered as a word
          */
-        else if ( isupper(text[i-1]) && pattern_mask[(uint8_t)tolower(c)] != -1
-                  && (i+1 == text_len || !islower(text[i+1])) )
+        /*else if ( isupper(text[i-1]) && pattern_mask[(uint8_t)tolower(c)] != -1*/
+        /*          && (i+1 == text_len || !islower(text[i+1])) )*/
+        /*    d = (d << 1) | (pattern_mask[(uint8_t)tolower(c)] >> k);*/
+        else if ( pattern_mask[(uint8_t)tolower(c)] != -1 )
             d = (d << 1) | (pattern_mask[(uint8_t)tolower(c)] >> k);
         else
             d = ~0;
@@ -1243,7 +1249,7 @@ HighlightGroup* evaluateHighlights(TextContext* pText_ctxt,
                             score = prefix_score + pGroup->score;
                             if ( k == 0 )
                             {
-                                score -= 0.2f * (pGroup->end - i + n - pattern_len);
+                                score -= 0.4f * (pGroup->end - i + n - pattern_len);
                             }
                             cur_highlights.score = score;
                             cur_highlights.beg = i - n;
