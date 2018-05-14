@@ -15,61 +15,10 @@ from .manager import *
 #*****************************************************
 class AnyExplorer(Explorer):
     def __init__(self):
-        self._prefix_length = 0
-        self._max_bufname_len = 0
+        pass
 
     def getContent(self, *args, **kwargs):
-        if len(args) == 0:
-            buffers = {b.number: b for b in vim.buffers
-                       if lfEval("buflisted(%d)" % b.number) == '1'}
-        elif args[0] == 1:
-            buffers = {b.number: b for b in vim.buffers
-                       if os.path.basename(b.name) != "LeaderF"}
-        elif args[0] == 2:
-            buffers = {w.buffer.number: w.buffer for w in vim.current.tabpage.windows
-                       if lfEval("buflisted(%d)" % w.buffer.number) == '1'}
-        else:
-            buffers = {w.buffer.number: w.buffer for w in vim.current.tabpage.windows
-                       if os.path.basename(w.buffer.name) != "LeaderF"}
-
-
-        # e.g., 12 u %a+- aaa.txt
-        bufnr_len = len(lfEval("bufnr('$')"))
-        self._prefix_length = bufnr_len + 8
-
-        self._max_bufname_len = max(int(lfEval("strdisplaywidth('%s')"
-                                        % escQuote(getBasename(buffers[nr].name))))
-                                    for nr in mru.getMruBufnrs() if nr in buffers)
-
-        bufnames = []
-        for nr in mru.getMruBufnrs():
-            if nr in buffers:
-                buf_name = buffers[nr].name
-                if not buf_name:
-                    buf_name = "[No Name]"
-                if lfEval("g:Lf_ShowRelativePath") == '1':
-                    buf_name = lfRelpath(buf_name)
-                basename = getBasename(buf_name)
-                dirname = getDirname(buf_name)
-                space_num = self._max_bufname_len \
-                            - int(lfEval("strdisplaywidth('%s')" % escQuote(basename)))
-                # e.g., 12 u %a+- aaa.txt
-                buf_name = '{:{width}d} {:1s} {:1s}{:1s}{:1s}{:1s} {}{} "{}"'.format(nr,
-                            '' if buffers[nr].options["buflisted"] else 'u',
-                            '%' if int(lfEval("bufnr('%')")) == nr
-                                else '#' if int(lfEval("bufnr('#')")) == nr else '',
-                            'a' if lfEval("bufwinnr(%d)" % nr) != '-1' else 'h',
-                            '+' if buffers[nr].options["modified"] else '',
-                            '-' if not buffers[nr].options["modifiable"] else '',
-                            basename, ' ' * space_num,
-                            dirname if dirname else '.' + os.sep,
-                            width=bufnr_len)
-                bufnames.append(buf_name)
-                del buffers[nr]
-            elif lfEval("bufnr(%d)" % nr) == '-1':
-                mru.delMruBufnr(nr)
-
-        return bufnames
+        pass
 
     def getStlCategory(self):
         return 'Buffer'
@@ -80,13 +29,9 @@ class AnyExplorer(Explorer):
     def supportsNameOnly(self):
         return True
 
-    def getPrefixLength(self):
-        return self._prefix_length
-
-    def getMaxBufnameLen(self):
-        return self._max_bufname_len
-
-
+"""
+g:Lf_
+"""
 #*****************************************************
 # AnyExplManager
 #*****************************************************
@@ -184,15 +129,6 @@ class AnyExplManager(Manager):
             lfCmd("silent! call matchdelete(%d)" % i)
         self._match_ids = []
 
-    def deleteBuffer(self, wipe=0):
-        if vim.current.window.cursor[0] <= self._help_length:
-            return
-        lfCmd("setlocal modifiable")
-        line = vim.current.line
-        buf_number = int(re.sub(r"^.*?(\d+).*$", r"\1", line))
-        lfCmd("confirm %s %d" % ('bw' if wipe else 'bd', buf_number))
-        del vim.current.line
-        lfCmd("setlocal nomodifiable")
 
 
 
